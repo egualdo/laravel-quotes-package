@@ -7,73 +7,73 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-**Paquete Laravel para obtener, cachear y mostrar citas con rate limiting y UI Vue.js**
+**Laravel Package for getting, caching and show quotes with rate limiting and UI Vue.js**
 
 </div>
 
-# 🚀 Instalación
+# 🚀 Installing
 
-### 1. Requisitos previos
+### 1. previous requirements
 
 - PHP 8.1+
 - Laravel 10+
 - Composer
 - Extensión PHP cURL
 
-### 🚀 Inicio Rápido
+### 🚀 Quick start
 
-### ⚠️ IMPORTANTE: Antes de comenzar
+# ⚠️ IMPORTANT: Before start
 
-**Docker debe estar instalado y EJECUTÁNDOSE antes de continuar.**
+**Docker must be installed and running before continue.**
 
-### Opción 1: Script Automático (Recomendado)
+### Automatic script
 
 ```bash
-# 1. Clonar el repositorio
+# 1. Clone the repository
 git clone https://github.com/egualdo/laravel-quotes-package.git
 cd laravel-quotes-package
 
-# 2. Ejecutar script de instalación
+# 2. Execute the command
 docker-compose up -d
 
-# 3. Acceder a la aplicación
+# 3. Access to:
 # http://localhost:8080/quotes/ui
 ```
 
-### Comandos útiles para empezar:
+### Commands to start:
 
 ```bash
-# Importar citas de ejemplo
+# Import initial quotes
 docker-compose exec app php artisan quotes:batch-import 10
 
-# Ver estado del sistema
+# System stats
 curl http://localhost:8080/quotes/api/stats
 
-# Ejecutar tests
+# Execute tests
 docker-compose exec app ./vendor/bin/pest
 ```
 
-## ⚡ Estrategia de Rate Limiting
+## ⚡ Rate Limiting Estrategy
 
-### 📊 Visión General
+### 📊 Overview
 
-El paquete implementa un sistema de rate limiting persistente que respeta los límites de la API externa (dummyjson.com), evitando bloqueos y garantizando un uso responsable.
+The package implements a persistent rate limiting system that respects the limits of the external API (dummyjson.com), preventing blockages and ensuring responsible use.
 
-### 🎯 Características Principales
+### 🎯 Main Features
 
-### 1. Persistencia Entre Requests
+### 1. Persistence Between Requests
 
 ```bash
 $this->cache->put($this->cacheKey, $hits, $this->timeWindow);
 ```
 
-- Los contadores persisten entre diferentes solicitudes
+- Counters persist across different requests
 
-- Compatible con drivers: redis, database, file, array
+- Compatible with drivers: redis, database, file, array
 
-- No se pierde el estado al reiniciar la aplicación (dependiendo del driver)
+- State is not lost upon application restart (depending on the driver)
 
-### 2. Sin Sleep/Wait
+### 2. Without Sleep/Wait
 
 ```bash
 public function attempt(): void
@@ -87,47 +87,47 @@ public function attempt(): void
 }
 ```
 
-### 3. Configuración Flexible
+### 3. Flexible Configuration
 
 ```bash
-// Configurable via .env o config/quotes.php
+// Config by .env or config/quotes.php
 'rate_limiting' => [
-    'request_limit' => env('QUOTES_REQUEST_LIMIT', 5),  // Solicitudes
-    'time_window' => env('QUOTES_TIME_WINDOW', 30),     // Segundos
+    'request_limit' => env('QUOTES_REQUEST_LIMIT', 5),  // Requests
+    'time_window' => env('QUOTES_TIME_WINDOW', 30),     // Seconds
 ],
 ```
 
-### 🔄 Cómo Funciona
+### 🔄 How it work
 
-### Paso 1: Registro de Solicitud
+### Step 1: Application Registration
 
 ```bash
-// Cada solicitud exitosa registra un timestamp
+// Each success request register a timestamp
 $hits[] = time();
 $this->cache->put($this->cacheKey, $hits, $this->timeWindow);
 ```
 
-### Paso 2: Filtrado por Ventana Temporal
+### Step 2: Filtering by Temporary Window
 
 ```bash
-// Solo cuenta solicitudes dentro de la ventana de tiempo
+// It only counts requests within the time window
 $hits = array_filter($hits, function (int $timestamp) use ($now): bool {
     return $timestamp > $now - $this->timeWindow;
 });
 ```
 
-### Paso 3: Verificación de Límite
+### Step 3: Limit Verification
 
 ```bash
-// Verifica si se excedió el límite
+// Check if the limit was exceeded
 if (count($hits) >= $this->requestLimit) {
-    // Calcula tiempo restante
+    // Calculate remaining time
     $resetTime = $this->getResetTime();
     throw new RateLimitExceededException($resetTime);
 }
 ```
 
-### Paso 4: Cálculo de Tiempo de Reset
+### Step 4: Reset Time Calculation
 
 ```bash
 public function getResetTime(): int
@@ -141,36 +141,36 @@ public function getResetTime(): int
 }
 ```
 
-### 🛡️ Manejo de Excepciones
+### 🛡️ Handling Exeptions
 
-### En el Servicio
+### In the service
 
 ```bash
 try {
     $this->rateLimiter->attempt();
-    // Llamada a API externa...
+    // Calling external API...
 } catch (RateLimitExceededException $e) {
-    // Manejo específico para rate limiting
+    // Specific handling rate limiting
     throw $e;
 }
 ```
 
-### En el Comando (Reintento Automático)
+### In the Command (Automatic Retry)
 
 ```bash
-// BatchImportCommand.php maneja la excepción automáticamente
+// BatchImportCommand.php handle exception automatically
 try {
     $quote = $this->quoteService->fetchFromApi($id);
 } catch (RateLimitExceededException $e) {
     $this->handleRateLimitExceeded();
-    continue; // Reintenta después de esperar
+    continue; // Retry after waiting
 }
 ```
 
-### En la API (Respuesta HTTP)
+### In the API (HTTP Response)
 
 ```bash
-// QuoteController devuelve HTTP 429
+// QuoteController returns HTTP 429
 catch (RateLimitExceededException $e) {
     return response()->json([
         'error' => 'rate_limit_exceeded',
@@ -180,67 +180,67 @@ catch (RateLimitExceededException $e) {
 }
 ```
 
-### 📈 Métricas y Monitoreo
+### 📈 Metrics and Monitoring
 
-### Estado Disponible
+### Status Available
 
 ```bash
 $status = $quoteService->getRateLimitStatus();
-// Devuelve:
+// returns:
 [
-    'remaining' => 3,      // Solicitudes restantes
-    'reset_in' => 15,      // Segundos hasta reset
-    'limit' => 5,          // Límite total
-    'window' => 30         // Ventana en segundos
+    'remaining' => 3,      // Remaining Request
+    'reset_in' => 15,      // Seconds until resets
+    'limit' => 5,          // Total Limit
+    'window' => 30         // Windows in seconds
 ]
 ```
 
-### Endpoint de Estadísticas
+### stats Endpoints
 
 ```bash
 GET /quotes/api/stats
 ```
 
-### 🚀 Ventajas de Esta Implementación
+### 🚀 Advantages of This Implementation
 
-#### Respetuoso con API Externa: Previene bloqueos por abuso
+#### External API Respectful: Prevents blocks due to abuse
 
-#### Persistente: Mantiene estado entre requests
+#### Persistent: Maintains state between requests
 
-#### Configurable: Se adapta a diferentes límites
+#### Configurable: Adapts to different limits
 
-#### Sin Bloqueos: No duerme el proceso PHP
+#### Block-Free: Does not put the PHP process to sleep
 
-#### Informativo: Proporciona métricas y tiempos de reset
+#### Informative: Provides metrics and reset times
 
-#### Integrado: Funciona con el ecosistema Laravel
+#### Integrated: Works with the Laravel ecosystem
 
-### 🐳 Instrucciones para Ejecutar el Entorno Docker
+### 🐳 Instructions for Running the Docker Environment
 
-### 📋 Requisitos Previos
+### 📋 Prerequisites
 
-#### Docker 20.10+ instalado
+#### Docker 20.10+ installed
 
 #### Docker Compose 2.0+
 
-#### 2GB de RAM disponible
+#### 2GB of available RAM
 
-#### Puertos 8080 y 3000 disponibles
+#### Available ports 8080 and 3000
 
-### 🛠️ Servicios Disponibles
+### 🛠️ Available Services
 
 <table>
 <thead>
 <tr>
-<td>Servicio</td>
-<td>Puerto</td>
-<td>Descripción</td>
-<td>Acceso</td>
+<td>Services</td>
+<td>Ports</td>
+<td>Description</td>
+<td>Access</td>
 </tr>			         
 <thead>
-<tbody><tr><td><span>app</span></td><td><span>9000</span></td><td><span>Aplicación Laravel</span></td><td><span>Interno</span></td></tr><tr><td><span>nginx</span></td><td><span>8080</span></td><td><span>Servidor Web</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td></tr><tr><td><span>mysql</span></td><td><span>3306</span></td><td><span>Base de datos</span></td><td><span>localhost:3306</span></td></tr><tr><td><span>redis</span></td><td><span>6379</span></td><td><span>Cache Redis</span></td><td><span>localhost:6379</span></td></tr></tbody>
+<tbody><tr><td><span>app</span></td><td><span>9000</span></td><td><span>Aplication Laravel</span></td><td><span>Intern</span></td></tr><tr><td><span>nginx</span></td><td><span>8080</span></td><td><span>Web Server</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td></tr><tr><td><span>mysql</span></td><td><span>3306</span></td><td><span>Database</span></td><td><span>localhost:3306</span></td></tr><tr><td><span>redis</span></td><td><span>6379</span></td><td><span>Cache Redis</span></td><td><span>localhost:6379</span></td></tr></tbody>
 </table>
 
-### 🎯 Resumen de Acceso
+### 🎯 Access Summary
 
-<table><thead><tr><th><span>Recurso</span></th><th><span>URL</span></th><th><span>Credenciales</span></th></tr></thead><tbody><tr><td><span>Aplicación</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td><td><span>-</span></td></tr><tr><td><span>UI Quotes</span></td><td><a href="http://localhost:8080/quotes/ui" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/ui</span></a></td><td><span>-</span></td></tr><tr><td><span>API Quotes</span></td><td><a href="http://localhost:8080/quotes/api" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/api</span></a></td><td><span>-</span></td></tr><tr><td><span>PHPMyAdmin</span></td><td><a href="http://localhost:8081" target="_blank" rel="noreferrer"><span>http://localhost:8081</span></a></td><td><span>root/secret</span></td></tr><tr><td><span>Redis Commander</span></td><td><a href="http://localhost:8082" target="_blank" rel="noreferrer"><span>http://localhost:8082</span></a></td><td><span>-</span></td></tr></tbody></table>
+<table><thead><tr><th><span>Resource</span></th><th><span>URL</span></th><th><span>Credentials</span></th></tr></thead><tbody><tr><td><span>Application</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td><td><span>-</span></td></tr><tr><td><span>UI Quotes</span></td><td><a href="http://localhost:8080/quotes/ui" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/ui</span></a></td><td><span>-</span></td></tr><tr><td><span>API Quotes</span></td><td><a href="http://localhost:8080/quotes/api" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/api</span></a></td><td><span>-</span></td></tr><tr><td><span>PHPMyAdmin</span></td><td><a href="http://localhost:8081" target="_blank" rel="noreferrer"><span>http://localhost:8081</span></a></td><td><span>root/secret</span></td></tr><tr><td><span>Redis Commander</span></td><td><a href="http://localhost:8082" target="_blank" rel="noreferrer"><span>http://localhost:8082</span></a></td><td><span>-</span></td></tr></tbody></table>
