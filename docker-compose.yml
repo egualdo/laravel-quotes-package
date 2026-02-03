@@ -1,0 +1,25 @@
+# docker-compose.yml con Redis
+services:
+  app:
+    build: .
+    container_name: quotes-package-app
+    ports:
+      - "8080:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8080
+      - QUOTES_API_URL=https://dummyjson.com/quotes
+      - QUOTES_REQUEST_LIMIT=5
+      - QUOTES_TIME_WINDOW=30
+      - CACHE_DRIVER=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: quotes-package-redis
+    ports:
+      - "6379:6379"
