@@ -29,9 +29,6 @@
 git clone https://github.com/egualdo/laravel-quotes-package.git
 cd laravel-quotes-package
 
-# Importar citas de ejemplo
-docker-compose exec app php artisan quotes:batch-import 10
-
 # 2. Ejecutar script de instalación
 docker-compose up -d
 
@@ -42,6 +39,9 @@ docker-compose up -d
 ### Comandos útiles para empezar:
 
 ```bash
+# Importar citas de ejemplo
+docker-compose exec app php artisan quotes:batch-import 10
+
 # Ver estado del sistema
 curl http://localhost:8080/quotes/api/stats
 
