@@ -22,6 +22,10 @@
 
 ### 🚀 Inicio Rápido
 
+### ⚠️ IMPORTANTE: Antes de comenzar
+
+**Docker debe estar instalado y EJECUTÁNDOSE antes de continuar.**
+
 ### Opción 1: Script Automático (Recomendado)
 
 ```bash
