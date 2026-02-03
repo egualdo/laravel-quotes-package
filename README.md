@@ -11,18 +11,7 @@
 
 </div>
 
-## 📋 Tabla de Contenidos
-
-- [🚀 Instalación](#instalación)
-- [📖 Uso](#uso)
-- [🔧 Configuración](#configuración)
-- [🌐 API](#api)
-- [💻 Interfaz Web](#interfaz-web)
-- [⚙️ Comandos](#comandos)
-- [🧪 Testing](#testing)
-- [🐳 Docker](#docker)
-
-## 🚀 Instalación
+# 🚀 Instalación
 
 ### 1. Requisitos previos
 
@@ -31,10 +20,33 @@
 - Composer
 - Extensión PHP cURL
 
-### 2. Instalar el paquete
+### 🚀 Inicio Rápido
+
+### Opción 1: Script Automático (Recomendado)
 
 ```bash
-composer require vendor/quotes
+# 1. Clonar el repositorio
+git clone https://github.com/egualdo/laravel-quotes-package.git
+cd laravel-quotes-package
+
+# Importar citas de ejemplo
+docker-compose exec app php artisan quotes:batch-import 10
+
+# 2. Ejecutar script de instalación
+docker-compose up -d
+
+# 3. Acceder a la aplicación
+# http://localhost:8080/quotes/ui
+```
+
+### Comandos útiles para empezar:
+
+```bash
+# Ver estado del sistema
+curl http://localhost:8080/quotes/api/stats
+
+# Ejecutar tests
+docker-compose exec app ./vendor/bin/pest
 ```
 
 ## ⚡ Estrategia de Rate Limiting
@@ -187,7 +199,7 @@ GET /quotes/api/stats
 
 ### 🚀 Ventajas de Esta Implementación
 
-### Respetuoso con API Externa: Previene bloqueos por abuso
+#### Respetuoso con API Externa: Previene bloqueos por abuso
 
 #### Persistente: Mantiene estado entre requests
 
@@ -211,23 +223,6 @@ GET /quotes/api/stats
 
 #### Puertos 8080 y 3000 disponibles
 
-### 🚀 Inicio Rápido
-
-### Opción 1: Script Automático (Recomendado)
-
-```bash
-# 1. Clonar el repositorio
-git clone <tu-repositorio>
-cd quotes-package
-
-# 2. Ejecutar script de instalación
-chmod +x docker-setup.sh
-./docker-setup.sh
-
-# 3. Acceder a la aplicación
-# Abre: http://localhost:8080/quotes/ui
-```
-
 ### 🛠️ Servicios Disponibles
 
 <table>
@@ -245,16 +240,3 @@ chmod +x docker-setup.sh
 ### 🎯 Resumen de Acceso
 
 <table><thead><tr><th><span>Recurso</span></th><th><span>URL</span></th><th><span>Credenciales</span></th></tr></thead><tbody><tr><td><span>Aplicación</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td><td><span>-</span></td></tr><tr><td><span>UI Quotes</span></td><td><a href="http://localhost:8080/quotes/ui" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/ui</span></a></td><td><span>-</span></td></tr><tr><td><span>API Quotes</span></td><td><a href="http://localhost:8080/quotes/api" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/api</span></a></td><td><span>-</span></td></tr><tr><td><span>PHPMyAdmin</span></td><td><a href="http://localhost:8081" target="_blank" rel="noreferrer"><span>http://localhost:8081</span></a></td><td><span>root/secret</span></td></tr><tr><td><span>Redis Commander</span></td><td><a href="http://localhost:8082" target="_blank" rel="noreferrer"><span>http://localhost:8082</span></a></td><td><span>-</span></td></tr></tbody></table>
-
-### Comandos útiles para empezar:
-
-```bash
-# Importar citas de ejemplo
-docker-compose exec app php artisan quotes:batch-import 10
-
-# Ver estado del sistema
-curl http://localhost:8080/quotes/api/stats
-
-# Ejecutar tests
-docker-compose exec app ./vendor/bin/pest
-```

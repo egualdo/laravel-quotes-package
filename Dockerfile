@@ -1,4 +1,4 @@
-# Dockerfile - Versión CORREGIDA
+# Dockerfile
 FROM php:8.2-cli
 
 WORKDIR /var/www
@@ -20,11 +20,10 @@ WORKDIR /var/www/laravel-app
 # 2. Copiar TODO el contenido del paquete (incluyendo composer.json)
 COPY . /var/www/quotes-package/
 
-# 3. IMPORTANTE: Configurar repositorio ANTES de require
+# 3. Configurar repositorio ANTES de require
 RUN composer config repositories.quotes-package '{"type": "path", "url": "/var/www/quotes-package", "options": {"symlink": false}}'
 
 # 4. Instalar el paquete usando el nombre de tu composer.json
-# Cambia "vendor/quotes" por lo que tengas en tu composer.json
 RUN composer require "ely/quotes-package:@dev"
 
 # 5. Publicar configuración
