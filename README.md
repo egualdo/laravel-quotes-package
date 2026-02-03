@@ -7,262 +7,254 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-**Un paquete Laravel completo para gestionar citas con rate limiting, caché inteligente y UI Vue.js**
-
-[Características](#características) • [Instalación](#instalación) • [Uso](#uso) • [Docker](#docker) • [API](#api-endpoints)
+**Paquete Laravel para obtener, cachear y mostrar citas con rate limiting y UI Vue.js**
 
 </div>
 
 ## 📋 Tabla de Contenidos
 
-- [🎯 Características](#características)
 - [🚀 Instalación](#instalación)
 - [📖 Uso](#uso)
 - [🔧 Configuración](#configuración)
-- [🌐 API Endpoints](#api-endpoints)
-- [⚙️ Comandos Artisan](#comandos-artisan)
-- [🧠 Algoritmo de Búsqueda Binaria](#algoritmo-de-búsqueda-binaria)
-- [⏱️ Rate Limiting](#rate-limiting)
-- [💻 Interfaz de Usuario](#interfaz-de-usuario)
-- [🐳 Docker](#docker)
+- [🌐 API](#api)
+- [💻 Interfaz Web](#interfaz-web)
+- [⚙️ Comandos](#comandos)
 - [🧪 Testing](#testing)
-- [🏗️ Arquitectura](#arquitectura)
-- [📁 Estructura del Proyecto](#estructura-del-proyecto)
-- [🤝 Contribución](#contribución)
-- [📄 Licencia](#licencia)
-
-## 🎯 Características
-
-### ✅ **Completamente Funcional**
-
-- **Rate Limiting Persistente**: 5 solicitudes por 30 segundos (configurable)
-- **Caché Inteligente**: Almacenamiento con búsqueda binaria O(log n)
-- **Importación Batch**: Comando con reintentos automáticos y unicidad
-- **UI Completa**: Vue.js 3 con TypeScript y paginación
-- **API RESTful**: Endpoints bien documentados
-- **100% Testeado**: Unit tests y feature tests
-
-### 🔥 **Tecnologías Utilizadas**
-
-- **Backend**: Laravel 10+, PHP 8.2+
-- **Frontend**: Vue.js 3 (CDN), TypeScript
-- **Testing**: PestPHP, Orchestra Testbench
-- **Contenedores**: Docker, Docker Compose
-- **Algoritmos**: Búsqueda binaria, ordenación
+- [🐳 Docker](#docker)
 
 ## 🚀 Instalación
 
-### 1. Instalar vía Composer
+### 1. Requisitos previos
+
+- PHP 8.1+
+- Laravel 10+
+- Composer
+- Extensión PHP cURL
+
+### 2. Instalar el paquete
 
 ```bash
 composer require vendor/quotes
 ```
 
-## 🧪 Testing
+## ⚡ Estrategia de Rate Limiting
 
-### Testing
+### 📊 Visión General
+
+El paquete implementa un sistema de rate limiting persistente que respeta los límites de la API externa (dummyjson.com), evitando bloqueos y garantizando un uso responsable.
+
+### 🎯 Características Principales
+
+### 1. Persistencia Entre Requests
 
 ```bash
-# Todos los tests
-./vendor/bin/pest
-
-# Solo tests unitarios
-./vendor/bin/pest tests/Unit
-
-# Solo tests de feature
-./vendor/bin/pest tests/Feature
+$this->cache->put($this->cacheKey, $hits, $this->timeWindow);
 ```
 
-🏗️ Arquitectura
-Diagrama de Componentes
-text
-Frontend:
-Vue.js UI → Laravel API
+- Los contadores persisten entre diferentes solicitudes
 
-Backend:
-API → Controller → Service
-Service → Cache Store
-Service → RateLimiter
-Service → BinarySearch
-Service → HTTP Client → External API
+- Compatible con drivers: redis, database, file, array
 
-Console:
-BatchImportCommand → Service
-Patrones Utilizados
-Service Provider: Registro centralizado
+- No se pierde el estado al reiniciar la aplicación (dependiendo del driver)
 
-Facade: Interfaz simplificada Quote::getQuote()
+### 2. Sin Sleep/Wait
 
-Repository Pattern: Caché como fuente de datos
+```bash
+public function attempt(): void
+{
+    if (count($hits) >= $this->requestLimit) {
+        throw new RateLimitExceededException(
+            "Rate limit exceeded. {$this->requestLimit} requests per " .
+            "{$this->timeWindow} seconds allowed."
+        );
+    }
+}
+```
 
-Strategy Pattern: Algoritmos intercambiables
+### 3. Configuración Flexible
 
-Observer Pattern: Eventos de rate limiting
+```bash
+// Configurable via .env o config/quotes.php
+'rate_limiting' => [
+    'request_limit' => env('QUOTES_REQUEST_LIMIT', 5),  // Solicitudes
+    'time_window' => env('QUOTES_TIME_WINDOW', 30),     // Segundos
+],
+```
 
-📁 Estructura del Proyecto
-text
-vendor/quotes/
-├── src/
-│ ├── Console/
-│ │ └── Commands/
-│ │ └── BatchImportQuotesCommand.php
-│ ├── Contracts/
-│ ├── Exceptions/
-│ │ └── RateLimitExceededException.php
-│ ├── Facades/
-│ │ └── Quote.php
-│ ├── Http/
-│ │ └── Controllers/
-│ │ └── QuoteController.php
-│ ├── Providers/
-│ │ └── QuoteServiceProvider.php
-│ ├── Services/
-│ │ ├── QuoteService.php
-│ │ └── RateLimiter.php
-│ └── Utilities/
-│ └── BinarySearch.php
-├── config/
-│ └── quotes.php
-├── database/
-│ └── migrations/
-├── resources/
-│ ├── js/ # Vue.js + TypeScript
-│ │ ├── app.ts
-│ │ ├── components/
-│ │ │ └── QuotesUI.vue
-│ │ └── types/
-│ │ └── quotes.ts
-│ ├── views/
-│ │ └── ui.blade.php # Vista principal
-│ └── dist/ # Assets compilados
-├── routes/
-│ └── web.php
-├── tests/
-│ ├── Unit/
-│ │ └── BinarySearchTest.php
-│ ├── Feature/
-│ │ ├── ApiTest.php
-│ │ └── BatchImportCommandTest.php
-│ ├── TestCase.php
-│ └── Pest.php
-├── composer.json
-├── vite.config.js
-├── tsconfig.json
-├── phpunit.xml
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
-🤝 Contribución
-Fork el repositorio
+### 🔄 Cómo Funciona
 
-Crear rama para feature (git checkout -b feature/AmazingFeature)
+### Paso 1: Registro de Solicitud
 
-Commit cambios (git commit -m 'Add AmazingFeature')
+```bash
+// Cada solicitud exitosa registra un timestamp
+$hits[] = time();
+$this->cache->put($this->cacheKey, $hits, $this->timeWindow);
+```
 
-Push a la rama (git push origin feature/AmazingFeature)
+### Paso 2: Filtrado por Ventana Temporal
 
-Abrir Pull Request
+```bash
+// Solo cuenta solicitudes dentro de la ventana de tiempo
+$hits = array_filter($hits, function (int $timestamp) use ($now): bool {
+    return $timestamp > $now - $this->timeWindow;
+});
+```
 
-Guía de Estilo
-PHP: PSR-12
+### Paso 3: Verificación de Límite
 
-JavaScript/TypeScript: Standard JS
+```bash
+// Verifica si se excedió el límite
+if (count($hits) >= $this->requestLimit) {
+    // Calcula tiempo restante
+    $resetTime = $this->getResetTime();
+    throw new RateLimitExceededException($resetTime);
+}
+```
 
-Commits: Conventional Commits
+### Paso 4: Cálculo de Tiempo de Reset
 
-Tests: Escribir tests para nuevas funcionalidades
+```bash
+public function getResetTime(): int
+{
+    $hits = $this->cache->get($this->cacheKey, []);
+    if (empty($hits)) return 0;
 
-Workflow de Desarrollo
-bash
+    $oldest = min($hits);
+    $reset = ($oldest + $this->timeWindow) - time();
+    return max(0, $reset);
+}
+```
 
-# 1. Clonar
+### 🛡️ Manejo de Excepciones
 
-git clone https://github.com/tuusuario/quotes-package.git
+### En el Servicio
 
-# 2. Instalar dependencias
+```bash
+try {
+    $this->rateLimiter->attempt();
+    // Llamada a API externa...
+} catch (RateLimitExceededException $e) {
+    // Manejo específico para rate limiting
+    throw $e;
+}
+```
 
-composer install
-npm install
+### En el Comando (Reintento Automático)
 
-# 3. Ejecutar tests
+```bash
+// BatchImportCommand.php maneja la excepción automáticamente
+try {
+    $quote = $this->quoteService->fetchFromApi($id);
+} catch (RateLimitExceededException $e) {
+    $this->handleRateLimitExceeded();
+    continue; // Reintenta después de esperar
+}
+```
 
-./vendor/bin/pest
+### En la API (Respuesta HTTP)
 
-# 4. Desarrollo
+```bash
+// QuoteController devuelve HTTP 429
+catch (RateLimitExceededException $e) {
+    return response()->json([
+        'error' => 'rate_limit_exceeded',
+        'message' => $e->getMessage(),
+        'retry_after' => 30,
+    ], 429);
+}
+```
 
-# - Escribir código
+### 📈 Métricas y Monitoreo
 
-# - Añadir tests
+### Estado Disponible
 
-# - Ejecutar tests
+```bash
+$status = $quoteService->getRateLimitStatus();
+// Devuelve:
+[
+    'remaining' => 3,      // Solicitudes restantes
+    'reset_in' => 15,      // Segundos hasta reset
+    'limit' => 5,          // Límite total
+    'window' => 30         // Ventana en segundos
+]
+```
 
-# 5. Build assets (opcional)
+### Endpoint de Estadísticas
 
-npm run build
+```bash
+GET /quotes/api/stats
+```
 
-# 6. Commit y push
+### 🚀 Ventajas de Esta Implementación
 
-git add .
-git commit -m "feat: agregar nueva funcionalidad"
-git push origin feature/nueva-funcionalidad
-📄 Licencia
-Este proyecto está licenciado bajo la MIT License. Ver el archivo LICENSE para más detalles.
+### Respetuoso con API Externa: Previene bloqueos por abuso
 
-<div align="center">
-¿Preguntas o problemas?
-Crear un issue •
-Ver ejemplos
+#### Persistente: Mantiene estado entre requests
 
-⭐ Si te gusta este proyecto, ¡dale una estrella en GitHub!
+#### Configurable: Se adapta a diferentes límites
 
-</div>
-📞 Soporte
-Problemas Comunes
-Rate limiting muy restrictivo: Aumenta QUOTES_REQUEST_LIMIT en .env
+#### Sin Bloqueos: No duerme el proceso PHP
 
-Caché no persiste: Verifica driver de cache en config/cache.php
+#### Informativo: Proporciona métricas y tiempos de reset
 
-UI no carga: Verifica que la ruta /quotes/ui esté registrada
+#### Integrado: Funciona con el ecosistema Laravel
 
-API externa no responde: Verifica conectividad a https://dummyjson.com
+### 🐳 Instrucciones para Ejecutar el Entorno Docker
 
-Debugging
-bash
+### 📋 Requisitos Previos
 
-# Ver logs de Laravel
+#### Docker 20.10+ instalado
 
-tail -f storage/logs/laravel.log
+#### Docker Compose 2.0+
 
-# Ver estado de rate limiting
+#### 2GB de RAM disponible
 
-php artisan tinker
+#### Puertos 8080 y 3000 disponibles
 
-> > > app(\Vendor\Quotes\Services\QuoteService::class)->getRateLimitStatus();
+### 🚀 Inicio Rápido
 
-# Ver contenido de caché
+### Opción 1: Script Automático (Recomendado)
 
-> > > Cache::get('quotes_storage');
-> > > Performance Tips
-> > > Usar Redis para cache: CACHE_DRIVER=redis
+```bash
+# 1. Clonar el repositorio
+git clone <tu-repositorio>
+cd quotes-package
 
-Aumentar TTL: QUOTES_CACHE_TTL=86400 (24 horas)
+# 2. Ejecutar script de instalación
+chmod +x docker-setup.sh
+./docker-setup.sh
 
-Batch imports grandes: Usar --max-attempts alto
+# 3. Acceder a la aplicación
+# Abre: http://localhost:8080/quotes/ui
+```
 
-Production: Deshabilitar APP_DEBUG=false
+### 🛠️ Servicios Disponibles
 
-🎉 ¡Gracias por usar Laravel Quotes Package!
+<table>
+<thead>
+<tr>
+<td>Servicio</td>
+<td>Puerto</td>
+<td>Descripción</td>
+<td>Acceso</td>
+</tr>			         
+<thead>
+<tbody><tr><td><span>app</span></td><td><span>9000</span></td><td><span>Aplicación Laravel</span></td><td><span>Interno</span></td></tr><tr><td><span>nginx</span></td><td><span>8080</span></td><td><span>Servidor Web</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td></tr><tr><td><span>mysql</span></td><td><span>3306</span></td><td><span>Base de datos</span></td><td><span>localhost:3306</span></td></tr><tr><td><span>redis</span></td><td><span>6379</span></td><td><span>Cache Redis</span></td><td><span>localhost:6379</span></td></tr></tbody>
+</table>
 
-text
+### 🎯 Resumen de Acceso
 
-**Para usar este archivo README.md:**
+<table><thead><tr><th><span>Recurso</span></th><th><span>URL</span></th><th><span>Credenciales</span></th></tr></thead><tbody><tr><td><span>Aplicación</span></td><td><a href="http://localhost:8080" target="_blank" rel="noreferrer"><span>http://localhost:8080</span></a></td><td><span>-</span></td></tr><tr><td><span>UI Quotes</span></td><td><a href="http://localhost:8080/quotes/ui" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/ui</span></a></td><td><span>-</span></td></tr><tr><td><span>API Quotes</span></td><td><a href="http://localhost:8080/quotes/api" target="_blank" rel="noreferrer"><span>http://localhost:8080/quotes/api</span></a></td><td><span>-</span></td></tr><tr><td><span>PHPMyAdmin</span></td><td><a href="http://localhost:8081" target="_blank" rel="noreferrer"><span>http://localhost:8081</span></a></td><td><span>root/secret</span></td></tr><tr><td><span>Redis Commander</span></td><td><a href="http://localhost:8082" target="_blank" rel="noreferrer"><span>http://localhost:8082</span></a></td><td><span>-</span></td></tr></tbody></table>
 
-1. **Copia todo el texto anterior** (incluyendo los backticks de inicio y fin del bloque de código)
-2. **Crea un archivo `README.md`** en la raíz de tu proyecto
-3. **Pega el contenido** (sin los backticks de inicio y fin del bloque - esos son solo para mostrarte el formato aquí)
-4. **Ajusta los enlaces y referencias**:
-   - Cambia `tuusuario` por tu usuario de GitHub
-   - Cambia `vendor/quotes` por el namespace real de tu paquete
-   - Actualiza los ejemplos según sea necesario
+### Comandos útiles para empezar:
 
-El archivo está listo para usar en tu repositorio GitHub.
+```bash
+# Importar citas de ejemplo
+docker-compose exec app php artisan quotes:batch-import 10
+
+# Ver estado del sistema
+curl http://localhost:8080/quotes/api/stats
+
+# Ejecutar tests
+docker-compose exec app ./vendor/bin/pest
+```
