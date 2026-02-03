@@ -57,3 +57,18 @@
 ```bash
 composer require vendor/quotes
 ```
+
+## 🧪 Testing
+
+### Testing
+
+```bash
+# Todos los tests
+./vendor/bin/pest
+
+# Solo tests unitarios
+./vendor/bin/pest tests/Unit
+
+# Solo tests de feature
+./vendor/bin/pest tests/Feature
+```
